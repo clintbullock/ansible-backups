@@ -14,3 +14,19 @@
   become: true
   tasks:
     - import_tasks: tasks/docker.yml
+
+- hosts: restic_server
+  become: true
+  tasks:
+    - import_tasks: tasks/restic_rest_server.yml
+  tags:
+    - restic
+    - restic_server
+
+- hosts: restic_client
+  become: true
+  tasks:
+    - import_tasks: tasks/restic_client.yml
+  tags:
+    - restic
+    - restic_client

@@ -5,13 +5,12 @@
     autorestic_config_yaml:
       version: 2
       locations:
-        home:
+        full:
           from: /
           to: remote
           options:
             backup:
               exclude:
-                - /backups
                 - /cdrom
                 - /dev
                 - /lost+found
@@ -32,7 +31,7 @@
       backends:
         remote:
           type: rest
-          path: "http://{{ restic_rest_server_user_default }}:{{ restic_rest_server_password_default }}@{{ restic_rest_server_host_default }}:{{ restic_server_port_default }}/{{ inventory_hostname }}"
+          path: "http://{{ restic_rest_server_user_default }}:{{ restic_rest_server_password_default }}@{{ restic_rest_server_host_default }}:{{ restic_rest_server_port_default }}/{{ inventory_hostname }}"
           key: "{{ restic_client_password_default }}"
   tags:
     - restic_client

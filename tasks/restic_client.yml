@@ -1,6 +1,6 @@
 ---
 - ansible.builtin.import_role:
-    name: tigattack.restic_rest_server
+    name: fuzzymistborn.autorestic
   vars:
     restic_rest_server_password: !vault |
               $ANSIBLE_VAULT;1.1;AES256
@@ -15,3 +15,36 @@
       - --prometheus-no-auth
   tags:
     - restic_rest_server
+
+autorestic_config_yaml:
+  version: 2
+  locations:
+    home:
+      from: /
+      to: remote
+      options:
+        backup:
+          exclude:
+            - /backups
+            - /cdrom
+            - /dev
+            - /lost+found
+            - /media
+            - /mnt
+            - /proc
+            - /run
+            - /snap
+            - /sys
+            - /tank
+            - /tmp
+            - /var/cache
+            - /var/lib/lxcfs
+            - /var/run
+            - /var/tmp
+            - /seodrop
+            - /var/www
+  backends:
+    remote:
+      type: rest
+      path: http://rest:QIjsOC86gpzfyRuVOdVj@192.168.1.142:8000/rest-client
+      key: foobar

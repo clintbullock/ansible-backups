@@ -1,0 +1,9 @@
+- ansible.builtin.import_role:
+    name: geerlingguy.docker
+  vars:
+    docker_install_compose_plugin: true
+    docker_install_compose: false
+    docker_users:
+      - ubuntu
+  tags:
+    - docker

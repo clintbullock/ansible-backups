@@ -1,0 +1,38 @@
+- name: Install packages
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - git
+      - gnupg
+      - htop
+      - iftop
+      - iotop
+      - ntp
+      - python3-pip
+      - ripgrep
+      - tmux
+      - tree
+      - unattended-upgrades
+      - vim
+      # rails
+      - build-essential
+      - rustc
+      - libssl-dev
+      - libyaml-dev
+      - zlib1g-dev
+      - libgmp-dev
+    state: latest
+    update_cache: yes
+    autoremove: yes
+    autoclean: yes
+  tags:
+    - packages
+
+- ansible.builtin.import_role:
+    name: geerlingguy.ntp
+  vars:
+    ntp_timezone: America/New_York
+  tags:
+    - ntp

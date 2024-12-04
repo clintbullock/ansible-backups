@@ -1,0 +1,77 @@
+---
+- import_playbook: upgrade.yml
+  when: upgrade | default(false) | bool
+
+- name: Install common packages
+  hosts: devkinsta
+  become: true
+  tasks:
+    - name: Install packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - git
+          - gnupg
+          - htop
+          - iftop
+          - iotop
+          - ntp
+          - ripgrep
+          - tmux
+          - tree
+          - unattended-upgrades
+          - vim
+          # rails
+          - build-essential
+          - rustc
+          - libssl-dev
+          - libyaml-dev
+          - zlib1g-dev
+          - libgmp-dev
+        state: latest
+        update_cache: yes
+        autoremove: yes
+        autoclean: yes
+      tags:
+        - packages
+
+- name: Install docker
+  hosts: devkinsta
+  become: true
+  roles:
+    - role: geerlingguy.docker
+      vars:
+        docker_install_compose_plugin: true
+        docker_install_compose: false
+        docker_users:
+          - ubuntu
+          - clint
+      tags:
+        - docker
+
+- name: Install ntp
+  hosts: devkinsta
+  become: true
+  roles:
+    - role: geerlingguy.ntp
+      vars:
+        ntp_timezone: America/New_York
+      tags:
+        - ntp
+
+- name: Devsec SSH Hardening
+  hosts: devkinsta
+  become: true
+  roles:
+    - role: devsec.hardening.ssh_hardening
+      when: devsec | default(false) | bool
+      tags:
+        - devsec
+        - ssh_hardening
+  vars:
+    ssh_allow_agent_forwarding: true
+    ssh_permit_root_login: without-password
+    # it was set to 2 which is too little if you have more than 2 ssh keys loaded
+    ssh_max_auth_retries: 10

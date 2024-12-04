@@ -1,0 +1,23 @@
+---
+roles:
+  - name: geerlingguy.docker
+    version: 7.4.3
+
+  - name: geerlingguy.ntp
+    version: 2.5.0
+
+  - name: tigattack.restic_rest_server
+    version: 1.0.0
+
+  - name: fuzzymistborn.autorestic
+    version: v0.2.3
+
+collections:
+  - name: devsec.hardening
+    version: 10.1.0
+
+  - name: community.general
+    version: 10.1.0
+
+  - name: community.docker
+    version: 4.1.0

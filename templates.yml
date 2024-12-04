@@ -1,0 +1,7 @@
+---
+- hosts: templates
+  become: true
+  tasks:
+    - import_tasks: tasks/upgrade.yml
+    - import_tasks: tasks/common.yml
+    - import_tasks: tasks/hardening.yml

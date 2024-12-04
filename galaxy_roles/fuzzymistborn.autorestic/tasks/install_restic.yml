@@ -1,0 +1,75 @@
+---
+- name: Get status of restic_install_path
+  ansible.builtin.stat:
+    path: "{{ restic_install_path }}"
+  register: is_installed
+
+- name: Set restic installed
+  ansible.builtin.set_fact:
+    restic_is_installed: "{{ is_installed.stat.exists }}"
+
+- name: Get restic version
+  ansible.builtin.shell: "{{ is_installed.stat.path }} version | grep -oP 'restic\\ \\K[0-9]*\\.[0-9]*\\.[0-9]*'"
+  register: installed_version_registered
+  changed_when: false
+  when: restic_is_installed == True
+
+- name: Get latest GH restic version
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/restic/restic/releases/latest
+    url_username: "{{ github_api_user | default(omit) }}"
+    url_password: "{{ github_api_pass | default(omit) }}"
+    return_content: true
+    force_basic_auth: "{{ github_api_auth | default(omit) }}"
+  register: release_version_registered
+  when: restic_download_latest_ver == True
+
+- name: Set restic version (latest)
+  ansible.builtin.set_fact:
+    restic_ver: "{{ release_version_registered.json.tag_name | regex_replace('v') }}"
+  when: restic_download_latest_ver == True
+
+- name: Set restic version (pinned)
+  ansible.builtin.set_fact:
+    restic_ver: "{{ restic_pinned_ver }}"
+  when: restic_download_latest_ver == False
+
+- name: Install restic
+  when: restic_is_installed == False or ( restic_is_installed == True and restic_download_latest_ver == True and installed_version_registered.stdout != restic_ver ) or ( restic_is_installed == True and restic_download_latest_ver == False and installed_version_registered.stdout != restic_pinned_ver )
+  block:
+    - name: Ensure restic_download_directory does not exist
+      ansible.builtin.file:
+        path: "{{ restic_download_directory }}"
+        state: absent
+
+    - name: Create restic_download_directory
+      ansible.builtin.file:
+        path: "{{ restic_download_directory }}"
+        state: directory
+        mode: "0755"
+
+    - name: Download restic
+      ansible.builtin.get_url:
+        url: "{{ restic_gh_url }}/v{{ restic_ver }}/restic_{{ restic_ver }}_{{ restic_distro }}.bz2"
+        dest: "{{ restic_download_directory }}"
+        force: yes
+        owner: root
+        group: root
+        mode: +x
+
+    - name: Ensure bzip2 is installed
+      ansible.builtin.package:
+        name: bzip2
+        state: present
+
+    - name: Set restic filename
+      ansible.builtin.set_fact:
+        file_name: "restic_{{ restic_ver }}_{{ restic_distro }}.bz2"
+
+    - name: Unzip restic release
+      ansible.builtin.shell: "cd {{ restic_download_directory }} && bzip2 -d {{ file_name }} && mv {{ file_name | regex_replace('.bz2') }} {{ restic_install_path }}"
+
+    - name: Fedora - SELinux Fix
+      ansible.builtin.command: restorecon -Rv /usr/local/bin
+      become: true
+      when: ansible_distribution == 'Fedora'

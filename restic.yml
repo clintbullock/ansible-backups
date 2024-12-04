@@ -1,0 +1,5 @@
+---
+- hosts: restic_server
+  become: true
+  tasks:
+    - import_tasks: tasks/restic_rest_server.yml

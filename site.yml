@@ -1,0 +1,16 @@
+---
+- hosts: active
+  become: true
+  tasks:
+    - import_tasks: tasks/upgrade.yml
+      when: upgrade | default(false) | bool
+
+    - import_tasks: tasks/common.yml
+
+    - import_tasks: tasks/hardening.yml
+      when: devsec | default(false) | bool
+
+- hosts: docker
+  become: true
+  tasks:
+    - import_tasks: tasks/docker.yml
